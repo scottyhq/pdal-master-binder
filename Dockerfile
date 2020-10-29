@@ -64,13 +64,13 @@ EXPOSE 8888
 ENTRYPOINT ["/srv/start"]
 #CMD ["jupyter", "notebook", "--ip", "0.0.0.0"]
 
-# Only run these if used as a base image
+# Remove ONBUILD to avoid creating a base image
 # ----------------------
-ONBUILD USER root
+USER root
 # hardcode for now
-ONBUILD COPY --chown=jovyan:jovyan . /home/jovyan
+COPY --chown=jovyan:jovyan . /home/jovyan
 
-ONBUILD RUN echo "Checking for 'binder' or '.binder' subfolder" \
+RUN echo "Checking for 'binder' or '.binder' subfolder" \
         ; if [ -d binder ] ; then \
         echo "Using 'binder/' build context" \
         ; elif [ -d .binder ] ; then \
@@ -79,8 +79,8 @@ ONBUILD RUN echo "Checking for 'binder' or '.binder' subfolder" \
         echo "Using './' build context" \
         ; fi
 
-ONBUILD ARG DEBIAN_FRONTEND=noninteractive
-ONBUILD RUN echo "Checking for 'apt.txt'..." \
+ARG DEBIAN_FRONTEND=noninteractive
+RUN echo "Checking for 'apt.txt'..." \
         ; [ -d binder ] && cd binder \
         ; [ -d .binder ] && cd .binder \
         ; if test -f "apt.txt" ; then \
@@ -90,10 +90,10 @@ ONBUILD RUN echo "Checking for 'apt.txt'..." \
         && rm -rf /var/lib/apt/lists/* \
         ; fi
 
-ONBUILD USER ${NB_USER}
+USER ${NB_USER}
 
 # Create "notebook" conda environment and dask labextensions
-ONBUILD RUN echo "Checking for 'conda-linux-64.lock' or 'environment.yml'..." \
+RUN echo "Checking for 'conda-linux-64.lock' or 'environment.yml'..." \
         ; [ -d binder ] && cd binder \
         ; [ -d .binder ] && cd .binder \
         ; if test -f "conda-linux-64.lock" ; then \
@@ -111,7 +111,7 @@ ONBUILD RUN echo "Checking for 'conda-linux-64.lock' or 'environment.yml'..." \
 
 # Install pip packages
 # remove cache https://github.com/pypa/pip/pull/6391 ?
-ONBUILD RUN echo "Checking for pip 'requirements.txt'..." \
+RUN echo "Checking for pip 'requirements.txt'..." \
         ; [ -d binder ] && cd binder \
         ; [ -d .binder ] && cd .binder \
         ; if test -f "requirements.txt" ; then \
@@ -119,7 +119,7 @@ ONBUILD RUN echo "Checking for pip 'requirements.txt'..." \
         ; fi
 
 # Run postBuild script within "pangeo" environment
-ONBUILD RUN echo "Checking for 'postBuild'..." \
+RUN echo "Checking for 'postBuild'..." \
         ; [ -d binder ] && cd binder \
         ; [ -d .binder ] && cd .binder \
         ; if test -f "postBuild" ; then \
@@ -135,7 +135,7 @@ ONBUILD RUN echo "Checking for 'postBuild'..." \
         ; fi
 
 # Overwrite start entrypoint script if present
-ONBUILD RUN echo "Checking for 'start'..." \
+RUN echo "Checking for 'start'..." \
         ; [ -d binder ] && cd binder \
         ; [ -d .binder ] && cd .binder \
         ; if test -f "start" ; then \
